@@ -32,7 +32,6 @@ const brickOffsetTop = 30;
 const brickOffsetLeft = 30;
 
 const bricks = [];
-
 for (let c = 0; c < brickColumnCount; c++) {
   bricks[c] = [];
   for (let r = 0; r < brickRowCount; r++) {

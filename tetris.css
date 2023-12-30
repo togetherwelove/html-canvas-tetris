@@ -1,0 +1,39 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+canvas {
+  display: block;
+  margin: 0 auto;
+  border: 1px solid black;
+}
+
+.container {
+  display: flex;
+  margin: 0 auto;
+  width: 202px;
+  height: 50px;
+  border: 1px solid black;
+}
+
+.btn-box {
+  display: flex;
+  width: inherit;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.btn {
+  background-color: white;
+  padding: 8px;
+}
+
+.btn:hover {
+  background-color: gainsboro;
+}
+
+.btn:active {
+  background-color: gray;
+}
