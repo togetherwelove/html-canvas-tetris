@@ -191,6 +191,7 @@ function createBlock() {
 
 //#region 블록 이동 로직
 function drop() {
+  collisionDetection();
   dropBlock();
 }
 
@@ -566,7 +567,7 @@ function draw() {
   drawScore();
   drawGrid();
   // drawStatus();
-  collisionDetection();
+
   checkGameover();
 
   requestAnimationFrame(draw);
