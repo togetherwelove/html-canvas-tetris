@@ -72,10 +72,7 @@ const blocks = [
     [6, 6, 6],
     [0, 0, 6],
   ],
-  [
-    [7, 7, 7, 7],
-    [0, 0, 0, 0],
-  ],
+  [[7, 7, 7, 7]],
 ];
 
 const blockColors = [
@@ -574,6 +571,6 @@ function draw() {
 }
 
 createBlock();
-setInterval(drop, 250);
+setInterval(drop, 1000);
 draw();
 //#endregion
