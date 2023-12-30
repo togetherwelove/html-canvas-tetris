@@ -1,52 +1,7 @@
 const canvas = document.getElementById("tetris");
 const ctx = canvas.getContext("2d");
 
-document.addEventListener("keydown", keydownHandler);
-document.addEventListener("click", clickHandler);
-
-const column = 12;
-const row = 21;
-
-let score = 0;
-
-let xAxis = column / 2 - 1;
-let yAxis = 1;
-
-// 내려오는 블록 배열
-const grid = [];
-for (let c = 0; c < column; c++) {
-  grid[c] = [];
-  for (let r = 0; r < row; r++) {
-    grid[c][r] = 0;
-  }
-}
-
-// 미리보기 블록 배열
-const gridPreview = [];
-for (let c = 0; c < 4; c++) {
-  gridPreview[c] = [];
-  for (let r = 0; r < 4; r++) {
-    gridPreview[c][r] = 0;
-  }
-}
-
-// 벽, 바닥 그리고 쌓이는 블록 배열
-const gridScore = [];
-for (let c = 0; c < column; c++) {
-  gridScore[c] = [];
-  for (let r = 0; r < row; r++) {
-    gridScore[c][r] = -8;
-  }
-}
-
-// 벽과 바닥 만들기
-for (let c = 1; c < column - 1; c++) {
-  for (let r = 0; r < row - 1; r++) {
-    gridScore[c][r] = 0;
-  }
-}
-
-// 블록들
+// 각 블록의 형태를 2차원 배열로 표현한 목록
 const blocks = [
   [
     [1, 1],
@@ -75,6 +30,7 @@ const blocks = [
   [[7, 7, 7, 7]],
 ];
 
+// 각 블록 종류의 대응하는 색상 코드 목록
 const blockColors = [
   "#FFFF00",
   "#800080",
@@ -85,13 +41,65 @@ const blockColors = [
   "#00FFFF",
 ];
 
-// 블록 리스트
+// 게임의 점수
+let score = 0;
+
+// 벽과 바닥을 포함하는 화면의 행과 열
+const column = 12;
+const row = 21;
+
+// 블록의 가로축과 세로축
+let xAxis = column / 2 - 1;
+let yAxis = 1;
+
+// 현재 떨어지고 있는 블록과 다음에 나올 블록 목록
 let blockList = [];
+
+// 컨트롤 그리드 (12 * 21)
+const grid = [];
+// 미리보기 그리드 (4 * 4)
+const gridPreview = [];
+// 점수 계산 그리드 (12 * 21)
+const gridScore = [];
+
+// 7번 블록 회전 체크 변수
+let blockIRotated = false;
+
+//#region 배열 생성
+for (let c = 0; c < column; c++) {
+  grid[c] = [];
+  gridScore[c] = [];
+  for (let r = 0; r < row; r++) {
+    grid[c][r] = 0;
+    gridScore[c][r] = -8;
+  }
+}
+
+for (let c = 1; c < column - 1; c++) {
+  for (let r = 0; r < row - 1; r++) {
+    gridScore[c][r] = 0;
+  }
+}
+
+for (let c = 0; c < 4; c++) {
+  gridPreview[c] = [];
+  for (let r = 0; r < 4; r++) {
+    gridPreview[c][r] = 0;
+  }
+}
+
 for (let i = 0; i < 2; i++) {
   blockList[i] = getRandomBlockIndex();
 }
+//#endregion
 
-//#region 핸들러
+// 클릭과 키보드 이벤트 리스너
+document.addEventListener("keydown", keydownHandler);
+document.addEventListener("click", clickHandler);
+
+//#region 이벤트 리스너 핸들러
+
+// 클릭 핸들러입니다.
 function clickHandler(e) {
   if (e.target.id == 1) {
     if (!checkWallLeft()) {
@@ -121,6 +129,7 @@ function clickHandler(e) {
   }
 }
 
+// 키보드 핸들러입니다.
 function keydownHandler(e) {
   if (e.keyCode == 37) {
     if (!checkWallLeft()) {
@@ -147,11 +156,14 @@ function keydownHandler(e) {
     while (!checkGround()) {
       drop();
     }
+    collisionDetection();
   }
 }
 //#endregion
 
 //#region 블록 생성 로직
+
+// 직접 화면에 블록을 등장시킵니다.
 function drawBlock(block) {
   for (let i = 0; i < block.length; i++) {
     for (let j = 0; j < block[i].length; j++) {
@@ -160,6 +172,7 @@ function drawBlock(block) {
   }
 }
 
+// 미리보기 화면에 블록을 등장시킵니다.
 function drawNextBlock(block) {
   for (let i = 0; i < block.length; i++) {
     for (let j = 0; j < block[i].length; j++) {
@@ -168,15 +181,18 @@ function drawNextBlock(block) {
   }
 }
 
+// 랜덤한 종류의 블록 인덱스(1 ~ 7)를 반환합니다.
 function getRandomBlockIndex() {
   return Math.floor(Math.random() * blocks.length);
 }
 
+// 블록 목록에 새 블록을 push 합니다.
 function getBlockList() {
   blockList.shift();
   blockList.push(getRandomBlockIndex());
 }
 
+// drawBlock과 drawNextBlock을 실행시킵니다.
 function createBlock() {
   const index = blockList[0];
   drawBlock(blocks[index]);
@@ -187,20 +203,23 @@ function createBlock() {
 //#endregion
 
 //#region 블록 이동 로직
+
+// 충돌 감지 로직 실행 후 블록을 한 칸 내립니다.
 function drop() {
   collisionDetection();
   dropBlock();
 }
 
+// 블록을 한 칸 내리고 세로축을 증가시킵니다.
 function dropBlock() {
   for (let c = 0; c < column; c++) {
     grid[c].unshift(0);
     grid[c].pop();
   }
-
   yAxis++;
 }
 
+// 블록의 왼쪽에 벽이 있는지 확인합니다.
 function checkWallLeft() {
   let checked = false;
   for (let c = 1; c < column - 1; c++) {
@@ -214,6 +233,7 @@ function checkWallLeft() {
   return checked;
 }
 
+// 블록의 오른쪽에 벽이 있는지 확인합니다.
 function checkWallRight() {
   let checked = false;
   for (let c = column - 1; c > 0; c--) {
@@ -227,6 +247,7 @@ function checkWallRight() {
   return checked;
 }
 
+// 블록과 닿아있는 밑 면이 바닥인지 확인합니다.
 function checkGround() {
   let checked = false;
   for (let c = 0; c < column; c++) {
@@ -240,6 +261,7 @@ function checkGround() {
   return checked;
 }
 
+// 블록을 왼쪽으로 이동시킵니다.
 function moveLeft() {
   const newLine = [];
   for (let r = 0; r < row; r++) {
@@ -251,6 +273,7 @@ function moveLeft() {
   xAxis--;
 }
 
+// 블록을 오른쪽으로 이동시킵니다.
 function moveRight() {
   const newLine = [];
   for (let r = 0; r < row; r++) {
@@ -262,6 +285,7 @@ function moveRight() {
   xAxis++;
 }
 
+// 블록을 착지시킵니다.
 function blockLand() {
   let negativeGrid = [];
   for (let c = 0; c < column; c++) {
@@ -288,6 +312,7 @@ function blockLand() {
 
 //#region 블록 회전 로직
 
+// 7번과 1번 블록을 제외한 나머지 블록을 회전 시킵니다.
 function rotateBlock() {
   const gridTemp = [];
   for (let c = 0; c < 3; c++) {
@@ -330,7 +355,7 @@ function rotateBlock() {
   }
 }
 
-let blockIRotated = false;
+// 7번 블록을 회전시킵니다.
 function rotateBlockI() {
   const gridTemp = [];
   for (let c = 0; c < 4; c++) {
@@ -389,6 +414,8 @@ function rotateBlockI() {
 //#endregion
 
 //#region 점수 계산 로직
+
+// 충돌을 감지하고 여러 로직을 실행시킵니다.
 function collisionDetection() {
   for (let c = 0; c < column; c++) {
     for (let r = 0; r < row; r++) {
@@ -398,6 +425,7 @@ function collisionDetection() {
         resetGrid();
         getBlockList();
         createBlock();
+
         xAxis = column / 2 - 1;
         yAxis = 1;
       }
@@ -405,6 +433,7 @@ function collisionDetection() {
   }
 }
 
+// 화면을 리셋시킵니다.
 function resetGrid() {
   for (let c = 0; c < column; c++) {
     for (let r = 0; r < row; r++) {
@@ -419,6 +448,7 @@ function resetGrid() {
   }
 }
 
+// 점수를 계산합니다. 한 줄이 채워지면 없애고 위의 줄을 한 칸 내립니다.
 function calculateScore() {
   let hit = false;
   let hitrow = 0;
@@ -446,7 +476,8 @@ function calculateScore() {
 //#endregion
 
 //#region 그래픽 로직
-// 상태 코드 화면
+
+// 배열의 숫자를 화면에 나타냅니다. (개발용)
 function drawStatus() {
   for (let c = 0; c < column; c++) {
     for (let r = 0; r < row; r++) {
@@ -472,9 +503,50 @@ function drawStatus() {
   }
 }
 
-// 그래픽 화면
+// 게임 화면을 나타냅니다.
 function drawGrid() {
-  // 미리보기
+  for (let c = 0; c < column; c++) {
+    for (let r = 0; r < row; r++) {
+      const g = grid[c][r];
+      if (g > 0) {
+        ctx.beginPath();
+        ctx.rect(c * 20 - 20, r * 20, 20, 20);
+        ctx.fillStyle = blockColors[blockList[0]];
+        ctx.fill();
+        ctx.stroke();
+        ctx.closePath();
+      }
+    }
+  }
+
+  for (let c = 1; c < column - 1; c++) {
+    for (let r = 0; r < row - 1; r++) {
+      const gs = gridScore[c][r];
+      if (gs < 0) {
+        ctx.beginPath();
+        ctx.rect(c * 20 - 20, r * 20, 20, 20);
+        ctx.fillStyle = blockColors[Math.abs(gs) - 1];
+        ctx.fill();
+        ctx.stroke();
+        ctx.closePath();
+      }
+    }
+  }
+}
+
+// 점수 화면을 나타냅니다.
+function drawScore() {
+  ctx.beginPath();
+  ctx.strokeRect(135, 0, 65, 20);
+  ctx.closePath();
+
+  ctx.font = "12px Arial";
+  ctx.fillStyle = "#000000";
+  ctx.fillText("Score: " + score, 137, 15);
+}
+
+// 미리보기 화면을 나타냅니다.
+function drawPreview() {
   ctx.beginPath();
   ctx.rect(0, 0, 60, 60);
   ctx.fillStyle = "#FFFFFF";
@@ -494,51 +566,12 @@ function drawGrid() {
       }
     }
   }
-
-  // 떨어지는 블록
-  for (let c = 0; c < column; c++) {
-    for (let r = 0; r < row; r++) {
-      const g = grid[c][r];
-      if (g > 0) {
-        ctx.beginPath();
-        ctx.rect(c * 20 - 20, r * 20, 20, 20);
-        ctx.fillStyle = blockColors[blockList[0]];
-        ctx.fill();
-        ctx.stroke();
-        ctx.closePath();
-      }
-    }
-  }
-
-  // 쌓이는 블록
-  for (let c = 1; c < column - 1; c++) {
-    for (let r = 0; r < row - 1; r++) {
-      const gs = gridScore[c][r];
-      if (gs < 0) {
-        ctx.beginPath();
-        ctx.rect(c * 20 - 20, r * 20, 20, 20);
-        ctx.fillStyle = blockColors[Math.abs(gs) - 1];
-        ctx.fill();
-        ctx.stroke();
-        ctx.closePath();
-      }
-    }
-  }
-}
-
-// 점수 화면
-function drawScore() {
-  ctx.beginPath();
-  ctx.strokeRect(135, 0, 65, 20);
-  ctx.closePath();
-
-  ctx.font = "12px Arial";
-  ctx.fillStyle = "#000000";
-  ctx.fillText("Score: " + score, 137, 15);
 }
 //#endregion
 
 //#region 게임오버 로직
+
+// 게임오버를 체크합니다.
 function checkGameover() {
   for (let c = 1; c < column - 1; c++) {
     if (gridScore[c][4] != 0) {
@@ -548,6 +581,7 @@ function checkGameover() {
   }
 }
 
+// 게임을 리셋시킵니다.
 function resetGame() {
   score = 0;
   for (let c = 1; c < column - 1; c++) {
@@ -558,12 +592,14 @@ function resetGame() {
 }
 //#endregion
 
-//main
+// 메인 메소드 입니다.
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawScore();
-  drawGrid();
+
   // drawStatus();
+  drawGrid();
+  drawScore();
+  drawPreview();
 
   checkGameover();
 
@@ -571,6 +607,8 @@ function draw() {
 }
 
 createBlock();
+
 setInterval(drop, 1000);
+
 draw();
 //#endregion
