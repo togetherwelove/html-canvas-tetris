@@ -39,23 +39,20 @@ const blockColors = [
   "#00FFFF",
 ];
 
-let score = 0;
-
 const column = 14;
 const row = 21;
+
+const grid = [];
+const gridPreview = [];
+const gridScore = [];
+
+let score = 0;
 
 let cAxis = column / 2 - 2;
 let rAxis = 1;
 
 let blockList = [];
 
-const grid = [];
-const gridPreview = [];
-const gridScore = [];
-
-let blockIRotated = false;
-
-//#region 배열 생성
 for (let c = 0; c < column; c++) {
   grid[c] = [];
   gridScore[c] = [];
@@ -81,12 +78,9 @@ for (let c = 0; c < 4; c++) {
 for (let i = 0; i < 2; i++) {
   blockList[i] = getRandomBlockIndex();
 }
-//#endregion
 
 document.addEventListener("keydown", keydownHandler);
 document.addEventListener("click", clickHandler);
-
-//#region 이벤트 리스너 핸들러
 
 function clickHandler(e) {
   if (e.target.id == 1) {
@@ -107,7 +101,7 @@ function clickHandler(e) {
 
   if (e.target.id == 4) {
     while (!checkGround()) {
-      drop();
+      dropBlock();
     }
     collisionDetection();
   }
@@ -132,14 +126,20 @@ function keydownHandler(e) {
 
   if (e.keyCode == 32) {
     while (!checkGround()) {
-      drop();
+      dropBlock();
     }
     collisionDetection();
   }
 }
-//#endregion
 
-//#region 블록 생성 로직
+function getRandomBlockIndex() {
+  return Math.floor(Math.random() * blocks.length);
+}
+
+function getBlockList() {
+  blockList.shift();
+  blockList.push(getRandomBlockIndex());
+}
 
 function drawBlock(block) {
   for (let i = 0; i < block.length; i++) {
@@ -157,15 +157,6 @@ function drawNextBlock(block) {
   }
 }
 
-function getRandomBlockIndex() {
-  return Math.floor(Math.random() * blocks.length);
-}
-
-function getBlockList() {
-  blockList.shift();
-  blockList.push(getRandomBlockIndex());
-}
-
 function createBlock() {
   const index = blockList[0];
   drawBlock(blocks[index]);
@@ -173,29 +164,10 @@ function createBlock() {
   const nextIndex = blockList[1];
   drawNextBlock(blocks[nextIndex]);
 }
-//#endregion
-
-//#region 블록 이동 로직
-
-function drop() {
-  collisionDetection();
-  dropBlock();
-}
 
 function dropBlock() {
-  for (let c = 0; c < column; c++) {
-    grid[c].unshift(0);
-    grid[c].pop();
-  }
-  rAxis++;
-}
-
-function moveUp() {
-  for (let c = 0; c < column; c++) {
-    grid[c].push(0);
-    grid[c].shift();
-  }
-  rAxis--;
+  collisionDetection();
+  moveDown();
 }
 
 function checkWallLeft() {
@@ -267,7 +239,23 @@ function moveRight() {
   cAxis++;
 }
 
-function blockLand() {
+function moveDown() {
+  for (let c = 0; c < column; c++) {
+    grid[c].unshift(0);
+    grid[c].pop();
+  }
+  rAxis++;
+}
+
+function moveUp() {
+  for (let c = 0; c < column; c++) {
+    grid[c].push(0);
+    grid[c].shift();
+  }
+  rAxis--;
+}
+
+function landBlock() {
   let negativeGrid = [];
   for (let c = 0; c < column; c++) {
     negativeGrid[c] = [];
@@ -353,17 +341,13 @@ function rotate(gridTemp, arrayLength) {
   }
 }
 
-//#endregion
-
-//#region 점수 계산 로직
-
 function collisionDetection() {
   for (let c = 0; c < column; c++) {
     for (let r = 0; r < row; r++) {
       if (grid[c][r] > 0 && gridScore[c][r + 1] < 0) {
-        blockLand();
+        landBlock();
         calculateScore();
-        resetGrid();
+        gridReset();
         getBlockList();
         createBlock();
 
@@ -374,7 +358,7 @@ function collisionDetection() {
   }
 }
 
-function resetGrid() {
+function gridReset() {
   for (let c = 0; c < column; c++) {
     for (let r = 0; r < row; r++) {
       grid[c][r] = 0;
@@ -413,11 +397,8 @@ function calculateScore() {
     score++;
   }
 }
-//#endregion
 
-//#region 그래픽 로직
-
-function drawStatus() {
+function drawMatrix() {
   for (let c = 0; c < column; c++) {
     for (let r = 0; r < row; r++) {
       const g = grid[c][r];
@@ -503,20 +484,17 @@ function drawPreview() {
     }
   }
 }
-//#endregion
-
-//#region 게임오버 로직
 
 function checkGameover() {
   for (let c = 1; c < column - 3; c++) {
     if (gridScore[c][4] != 0) {
       alert("Game Over");
-      resetGame();
+      gameReset();
     }
   }
 }
 
-function resetGame() {
+function gameReset() {
   score = 0;
   for (let c = 1; c < column - 3; c++) {
     for (let r = 0; r < row - 1; r++) {
@@ -524,12 +502,11 @@ function resetGame() {
     }
   }
 }
-//#endregion
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // drawStatus();
+  // drawMatrix();
   drawPreview();
   drawScore();
   drawGrid();
@@ -540,8 +517,5 @@ function draw() {
 }
 
 createBlock();
-
-setInterval(drop, 1000);
-
+setInterval(dropBlock, 1000);
 draw();
-//#endregion
