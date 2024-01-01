@@ -322,7 +322,7 @@ function rotate(gridTemp, arrayLength) {
         } else if (c >= 2) {
           moveLeft();
         }
-        if (r >= 2) {
+        if (!complete && r >= 2) {
           moveUp();
         }
         complete = false;
