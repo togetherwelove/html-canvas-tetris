@@ -42,8 +42,10 @@ const blockColors = [
 
 /**
  * (10 + 4 * 20 + 1) 배열을 만든 이유는 다음과 같습니다.
+ *
  * 블록이 존재할 수 있는 공간은 10 * 20 입니다.
- * 벽과 맨 밑 바닥이 있습니다. (column + 2, row + 1)
+ * 벽 블록과 맨 밑 바닥 블록 칸을 추가하였습니다 (column + 2, row + 1)
+ *
  * (4 * 4) 블록이 맨 왼쪽 벽에 붙어 회전하는 경우,
  * Index out of range를 방지하기 위해 짝수 단위로 column를 추가하였습니다. (column + 2)
  */
@@ -164,6 +166,7 @@ function getBlockList() {
 
 /**
  * 블록을 생성합니다.
+ *
  * @param {number[][]} block 블록 2차원 배열
  */
 function drawBlock(block) {
@@ -176,6 +179,7 @@ function drawBlock(block) {
 
 /**
  * 미리보기 배열에 파라미터로 받은 블록 배열을 저장합니다.
+ *
  * @param {number[][]} block 블록 2차원 배열
  */
 function drawNextBlock(block) {
@@ -201,6 +205,7 @@ function dropBlock() {
   moveDown();
 }
 
+//#region
 // 블록이 있는 배열과 기존의 블록(벽 포함)을 비교합니다.
 function checkLeft() {
   let checked = false;
@@ -242,7 +247,9 @@ function checkGround() {
   }
   return checked;
 }
+//#endregion
 
+//#region
 // 블록을 이동시킵니다.
 function moveLeft() {
   const newLine = [];
@@ -291,6 +298,7 @@ function moveUp() {
 
   rAxis--;
 }
+//#endregion
 
 function landBlock() {
   // 임시 배열을 생성합니다.
@@ -482,6 +490,7 @@ function gameReset() {
   }
 }
 
+//#region
 // 캔버스에 배열을 시각화합니다.
 function drawMatrix() {
   for (let c = 0; c < column; c++) {
@@ -569,7 +578,9 @@ function drawPreview() {
     }
   }
 }
+//#endregion
 
+// 메인 메서드입니다.
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -583,6 +594,9 @@ function draw() {
   requestAnimationFrame(draw);
 }
 
+/**
+ * 맨 처음 블록을 생성합니다. 그리고 1초(1000ms)에 한번 블록을 하강시킵니다.
+ */
 createBlock();
 setInterval(dropBlock, 1000);
 draw();
