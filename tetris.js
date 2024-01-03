@@ -182,7 +182,7 @@ function drawBlock(block) {
  *
  * @param {number[][]} block 블록 2차원 배열
  */
-function drawNextBlock(block) {
+function drawBlockPreview(block) {
   for (let i = 0; i < block.length; i++) {
     for (let j = 0; j < block[i].length; j++) {
       gridPreview[i][j] = block[i][j];
@@ -196,7 +196,7 @@ function createBlock() {
   drawBlock(blocks[index]);
 
   const nextIndex = blockList[1];
-  drawNextBlock(blocks[nextIndex]);
+  drawBlockPreview(blocks[nextIndex]);
 }
 
 // 충돌 감지 후 블록을 한 칸 하강시킵니다.
@@ -210,11 +210,11 @@ function dropBlock() {
 function checkLeft() {
   let checked = false;
 
-  for (let c = 1; c < column - 3; c++) {
+  loop: for (let c = 1; c < column - 3; c++) {
     for (let r = 0; r < row; r++) {
       if (grid[c][r] > 0 && gridScore[c - 1][r] < 0) {
         checked = true;
-        break;
+        break loop;
       }
     }
   }
@@ -224,11 +224,11 @@ function checkLeft() {
 function checkRight() {
   let checked = false;
 
-  for (let c = column - 3; c > 0; c--) {
+  loop: for (let c = column - 3; c > 0; c--) {
     for (let r = 0; r < row; r++) {
       if (grid[c][r] > 0 && gridScore[c + 1][r] < 0) {
         checked = true;
-        break;
+        break loop;
       }
     }
   }
@@ -237,11 +237,11 @@ function checkRight() {
 
 function checkGround() {
   let checked = false;
-  for (let c = 0; c < column; c++) {
+  loop: for (let c = 0; c < column; c++) {
     for (let r = 0; r < row; r++) {
       if (grid[c][r] > 0 && gridScore[c][r + 1] < 0) {
         checked = true;
-        break;
+        break loop;
       }
     }
   }
@@ -250,7 +250,9 @@ function checkGround() {
 //#endregion
 
 //#region
+
 // 블록을 이동시킵니다.
+
 function moveLeft() {
   const newLine = [];
   for (let r = 0; r < row; r++) {
@@ -496,21 +498,21 @@ function drawMatrix() {
   for (let c = 0; c < column; c++) {
     for (let r = 0; r < row; r++) {
       const g = grid[c][r];
-      ctx.font = "16px Arial";
-      ctx.fillStyle = "#0099DD";
-      ctx.fillText(g, c * 20 + column / 2, r * 20 + row - 5);
-
       const gs = gridScore[c][r];
+
       ctx.font = "16px Arial";
+
+      ctx.fillStyle = "#0099DD";
+      ctx.fillText(g, c * 20 + column / 2 - 20, r * 20 + row - 5);
+
       ctx.fillStyle = "#FF4000";
-      ctx.fillText(gs, c * 20 + column / 2, r * 20 + row - 5);
+      ctx.fillText(gs, c * 20 + column / 2 - 20, r * 20 + row - 5);
     }
   }
 
   for (let c = 0; c < 4; c++) {
     for (let r = 0; r < 4; r++) {
       const gp = gridPreview[c][r];
-      ctx.font = "16px Arial";
       ctx.fillStyle = "#01DF01";
       ctx.fillText(gp, c * 20 + column / 2, r * 20 + row - 5);
     }
@@ -521,28 +523,23 @@ function drawGrid() {
   for (let c = 0; c < column; c++) {
     for (let r = 0; r < row; r++) {
       const g = grid[c][r];
+      const gs = gridScore[c][r];
+
+      ctx.beginPath();
+
       if (g > 0) {
-        ctx.beginPath();
         ctx.rect(c * 20 - 20, r * 20, 20, 20);
         ctx.fillStyle = blockColors[blockList[0]];
-        ctx.fill();
-        ctx.stroke();
-        ctx.closePath();
       }
-    }
-  }
 
-  for (let c = 1; c < column - 3; c++) {
-    for (let r = 0; r < row - 1; r++) {
-      const gs = gridScore[c][r];
       if (gs < 0) {
-        ctx.beginPath();
         ctx.rect(c * 20 - 20, r * 20, 20, 20);
         ctx.fillStyle = blockColors[Math.abs(gs) - 1];
-        ctx.fill();
-        ctx.stroke();
-        ctx.closePath();
       }
+
+      ctx.fill();
+      ctx.stroke();
+      ctx.closePath();
     }
   }
 }
@@ -559,10 +556,7 @@ function drawScore() {
 
 function drawPreview() {
   ctx.beginPath();
-  ctx.rect(0, 0, 60, 60);
-  ctx.fillStyle = "#FFFFFF";
-  ctx.fill();
-  ctx.stroke();
+  ctx.strokeRect(0, 0, 60, 60);
   ctx.closePath();
   for (let c = 0; c < 4; c++) {
     for (let r = 0; r < 4; r++) {
@@ -571,8 +565,8 @@ function drawPreview() {
         ctx.beginPath();
         ctx.rect(c * 12.5 + 20, r * 12.5 + 10, 12.5, 12.5);
         ctx.fillStyle = blockColors[blockList[1]];
-        ctx.fill();
         ctx.stroke();
+        ctx.fill();
         ctx.closePath();
       }
     }
@@ -584,7 +578,7 @@ function drawPreview() {
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // drawMatrix();
+  drawMatrix();
   drawPreview();
   drawScore();
   drawGrid();
