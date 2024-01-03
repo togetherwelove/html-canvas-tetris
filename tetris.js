@@ -578,7 +578,7 @@ function drawPreview() {
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  drawMatrix();
+  // drawMatrix();
   drawPreview();
   drawScore();
   drawGrid();
