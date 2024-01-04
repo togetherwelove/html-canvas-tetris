@@ -58,6 +58,8 @@ const gridScore = [];
 
 let score = 0;
 
+let oldTime = Date.now();
+
 // 블록이 생성될 때 축을 담당하는 인덱스
 let cAxis = column / 2 - 2;
 let rAxis = 1;
@@ -578,6 +580,11 @@ function drawPreview() {
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  if (Date.now() - oldTime > 1000) {
+    dropBlock();
+    oldTime = Date.now();
+  }
+
   // drawMatrix();
   drawPreview();
   drawScore();
@@ -589,8 +596,8 @@ function draw() {
 }
 
 /**
- * 맨 처음 블록을 생성합니다. 그리고 1초(1000ms)에 한번 블록을 하강시킵니다.
+ * 맨 처음 블록을 생성합니다.
+ * draw 메서드를 실행합니다.
  */
 createBlock();
-setInterval(dropBlock, 1000);
 draw();
