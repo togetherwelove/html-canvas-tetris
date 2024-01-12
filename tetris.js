@@ -544,12 +544,13 @@ function drawGrid() {
 }
 
 function drawScore() {
-  ctx.font = "12px Arial";
   ctx.beginPath();
+  ctx.font = "12px Arial";
 
   ctx.rect(135, 0, 65, 20);
   ctx.stroke();
 
+  ctx.fillStyle = "#000000";
   ctx.fillText("Score: " + score, 137, 15);
 
   ctx.closePath();
