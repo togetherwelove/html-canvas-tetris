@@ -496,27 +496,24 @@ function gameReset() {
 
 //#region
 // 캔버스에 배열을 시각화합니다.
+
 function drawMatrix() {
+  ctx.font = "16px Arial";
+
   for (let c = 0; c < column; c++) {
     for (let r = 0; r < row; r++) {
-      const g = grid[c][r];
-      const gs = gridScore[c][r];
-
-      ctx.font = "16px Arial";
-
       ctx.fillStyle = "#0099DD";
-      ctx.fillText(g, c * 20 + column / 2 - 20, r * 20 + row - 5);
+      ctx.fillText(grid[c][r], c * 20 + column / 2 - 20, r * 20 + row - 5);
 
       ctx.fillStyle = "#FF4000";
-      ctx.fillText(gs, c * 20 + column / 2 - 20, r * 20 + row - 5);
+      ctx.fillText(gridScore[c][r], c * 20 + column / 2 - 20, r * 20 + row - 5);
     }
   }
 
   for (let c = 0; c < 4; c++) {
     for (let r = 0; r < 4; r++) {
-      const gp = gridPreview[c][r];
       ctx.fillStyle = "#01DF01";
-      ctx.fillText(gp, c * 20 + column / 2, r * 20 + row - 5);
+      ctx.fillText(gridPreview[c][r], c * 20 + column / 2, r * 20 + row - 5);
     }
   }
 }
@@ -547,28 +544,36 @@ function drawGrid() {
 }
 
 function drawScore() {
-  ctx.beginPath();
-  ctx.strokeRect(135, 0, 65, 20);
-  ctx.closePath();
-
   ctx.font = "12px Arial";
-  ctx.fillStyle = "#000000";
+  ctx.beginPath();
+
+  ctx.rect(135, 0, 65, 20);
+  ctx.stroke();
+
   ctx.fillText("Score: " + score, 137, 15);
+
+  ctx.closePath();
 }
 
 function drawPreview() {
   ctx.beginPath();
-  ctx.strokeRect(0, 0, 60, 60);
+  ctx.rect(0, 0, 60, 60);
+  ctx.stroke();
   ctx.closePath();
   for (let c = 0; c < 4; c++) {
     for (let r = 0; r < 4; r++) {
       const gp = gridPreview[c][r];
+      const blockPre = blockList[1];
       if (gp > 0) {
         ctx.beginPath();
-        ctx.rect(c * 12.5 + 20, r * 12.5 + 10, 12.5, 12.5);
-        ctx.fillStyle = blockColors[blockList[1]];
-        ctx.stroke();
+        if (blockPre == 6) {
+          ctx.rect(c * 12.5 + 20, r * 12.5 + 5, 12.5, 12.5);
+        } else {
+          ctx.rect(c * 12.5 + 20, r * 12.5 + 10, 12.5, 12.5);
+        }
+        ctx.fillStyle = blockColors[blockPre];
         ctx.fill();
+        ctx.stroke();
         ctx.closePath();
       }
     }
